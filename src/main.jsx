@@ -17,7 +17,10 @@ const quizData={
  communication:[["A good interview answer should be…",["Very long","Clear and structured","Unrelated","Memorized word-for-word"],1],["If you don't understand a question, you should…",["Guess silently","Ask politely for clarification","Ignore it","End the interview"],1],["Good listening includes…",["Interrupting","Looking away","Paying attention","Changing the topic"],2],["A professional email should be…",["Clear and polite","All caps","One long sentence","Without a subject"],0],["When giving an example, use…",["Specific details","Only opinions","Unrelated stories","Jargon only"],0]]
 };
 function App(){
- const [user,setUser]=useState(()=>JSON.parse(localStorage.getItem("voxUser")||"null"));
+ const [user,setUser]=useState(()=>{
+  const saved=JSON.parse(localStorage.getItem("voxUser")||"null");
+  return saved ? {...saved,name:"Srivalli"} : null;
+});
  const [page,setPage]=useState("home"),[name,setName]=useState(""),[email,setEmail]=useState(""),[password,setPassword]=useState("");
  const [role,setRole]=useState("Frontend Developer"),[category,setCategory]=useState("Job interview"),[level,setLevel]=useState("Student / Fresher"),[job,setJob]=useState("");
  const [idx,setIdx]=useState(0),[answer,setAnswer]=useState(""),[answers,setAnswers]=useState([]),[result,setResult]=useState(null),[voice,setVoice]=useState(true);
@@ -27,9 +30,10 @@ function App(){
  const [history,setHistory]=useState(()=>JSON.parse(localStorage.getItem("voxHistory")||"[]"));
  const [mobile,setMobile]=useState(false);
  useEffect(()=>{localStorage.setItem("voxHistory",JSON.stringify(history))},[history]);
+  useEffect(()=>{if(user)localStorage.setItem("voxUser",JSON.stringify(user))},[user]);
  const qs=questions[role]||questions["General Graduate / Fresher"];
  const speak=(text)=>{if(!("speechSynthesis" in window)){alert("Speech playback is not supported in this browser.");return;}window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=.96;window.speechSynthesis.speak(u)};
- const login=e=>{e.preventDefault();const u={name:name.trim(),email};localStorage.setItem("voxUser",JSON.stringify(u));setUser(u)};
+ const login=e=>{e.preventDefault();const u={name:"Srivalli",email};localStorage.setItem("voxUser",JSON.stringify(u));setUser(u)};
  const logout=()=>{localStorage.removeItem("voxUser");setUser(null);setPage("home")};
  const startInterview=()=>{setIdx(0);setAnswers([]);setAnswer("");setResult(null);setPage("interview");setTimeout(()=>document.getElementById("room")?.scrollIntoView({behavior:"smooth"}),100);if(voice)speak(qs[0])};
  const submitAnswer=()=>{const next=[...answers,{q:qs[idx],a:answer.trim()}];setAnswers(next);setAnswer("");if(idx<qs.length-1){setIdx(idx+1);if(voice)speak(qs[idx+1])}else{const words=next.reduce((n,x)=>n+x.a.split(/\s+/).filter(Boolean).length,0);const score=Math.min(100,Math.round(45+Math.min(words,100)*.45));setResult({score,words,count:next.length});setHistory(h=>[{type:"Mock interview",detail:role,score,date:new Date().toLocaleDateString()},...h]);}};
